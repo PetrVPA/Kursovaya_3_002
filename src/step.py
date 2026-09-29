@@ -6,15 +6,14 @@ from work import APIState
 from work import APIAirplane
 
 load_dotenv('../.env')
-word = os.getenv('PASWORD')
+word = os.getenv('PASSWORD')
 
 conn = psycopg2.connect(
     host = "localhost",
     database = "airplanes_country",
     port = 5432,
     user = "postgres",
-    #pasword = word
-    password = "12345"
+    password = word,
 )
 
 countries = [
@@ -29,7 +28,7 @@ def creat_tables():
     cur = conn.cursor()
     cur.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'countries')""")
     kontr_st = cur.fetchone()[0]
-    print(F"{kontr_st} таблица создана")
+    #print(F"{kontr_st} таблица создана")
     if kontr_st == False:
         cur.execute("""CREATE TABLE countries (title VARCHAR(50) PRIMARY KEY)""")
     cur.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'planes')""")
@@ -74,16 +73,33 @@ def save_planes_data_to_db(country: str, plane_data: list):
 state = APIState()
 airplane = APIAirplane()
 
+
+def get_aeroplanes_with_keyword(key: str) -> list:
+    list_callout = []
+    cur = conn.cursor()
+    set = '%'+ key+'%'
+    cur.execute("""SELECT callout FROM public.planes WHERE callout LIKE %s;""", (set,))
+    tmp_list = cur.fetchall()
+    for callout in tmp_list:
+        list_callout.append(callout[0])
+    conn.commit()
+    return list_callout
+
+
+
 if __name__ == '__main__':
 
     creat_tables()
 
     for country in countries:
         bbox = state.get_coordinates(country)
-        print(bbox)
+        #print(bbox)
         plane_box = airplane.get_coordinates(bbox)
         planes = plane_box.get('states')
         #print(planes)
         save_country_data_to_db(country)
         for plane in planes:
             save_planes_data_to_db(country, plane)
+
+    fd = 'AB'
+    print(get_aeroplanes_with_keyword(fd))
