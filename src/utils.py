@@ -43,7 +43,7 @@ class DBManager():
         for row in real_state:
             cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) AS col FROM tmp_state_plane; """, (row,))
             state_plane = cur.fetchall()[0][0]
-            print(state_plane)
+            #print(state_plane)
             list_state[row[0]] = state_plane
 
         cur.execute("DROP TABLE IF EXISTS temp_table;")
@@ -92,4 +92,7 @@ class DBManager():
         for callout in tmp_list:
             list_callout.append(callout[0])
         conn.commit()
-        return list_callout
+        if len(list_callout) > 0:
+            return list_callout
+        else:
+            return print("Данное сочетание отсутствует")

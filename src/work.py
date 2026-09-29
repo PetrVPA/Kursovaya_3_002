@@ -37,7 +37,7 @@ class APIState(CoordinatesObject):
         }
         response = get(url=self.openstreetmap_url, params=params_nominatim, headers=headers_nominatim)
         data = response.json()
-        print(data)
+        #print(data)
         geo_coordinates = data[0].get('boundingbox')
         params = {
             'lamin': geo_coordinates[0],

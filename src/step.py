@@ -77,13 +77,16 @@ airplane = APIAirplane()
 def get_aeroplanes_with_keyword(key: str) -> list:
     list_callout = []
     cur = conn.cursor()
-    set = '%'+ key+'%'
+    set = '%' + key + '%'
     cur.execute("""SELECT callout FROM public.planes WHERE callout LIKE %s;""", (set,))
     tmp_list = cur.fetchall()
     for callout in tmp_list:
         list_callout.append(callout[0])
     conn.commit()
-    return list_callout
+    if len(list_callout) > 0:
+        return list_callout
+    else:
+        return print("Данное сочетание отсутствует")
 
 
 
@@ -101,5 +104,5 @@ if __name__ == '__main__':
         for plane in planes:
             save_planes_data_to_db(country, plane)
 
-    fd = 'AB'
+    fd = 'SON'
     print(get_aeroplanes_with_keyword(fd))
