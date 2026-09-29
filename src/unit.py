@@ -3,6 +3,7 @@ import psycopg2
 import os.path
 from dotenv import load_dotenv
 
+
 load_dotenv('../.env')
 word = os.getenv('PASWORD')
 
@@ -11,7 +12,8 @@ conn = psycopg2.connect(
     database = "airplanes_country",
     port = 5432,
     user = "postgres",
-    pasword = word
+    #pasword = word
+    password = "12345"
 )
 
 countries = [
@@ -23,10 +25,10 @@ countries = [
 
 def creat_tables():
     cur = conn.cursor()
-    cur.execute("""CREATE TABLE countres (title VARCHAR(50) PRIMARY KEY;""")
+    cur.execute("""CREATE TABLE countries (title VARCHAR(50) PRIMARY KEY);""")
     cur.execute("""CREATE TABLE planes (
                 id INT PRIMARY KEY,
-                calsing VARCHAR(50) NOT NULL,
+                callout VARCHAR(50) NOT NULL,
                 velocity FLOAT NOT NULL,                
                 true_track FLOAT NOT NULL,
                 country_title VARCHAR(50),
@@ -74,20 +76,20 @@ def save_country_data_to_db(country: str):
     
 def save_planes_data_to_db(country: str, plane_data: list):
     
-    calsing = plane_data[1]
+    callout = plane_data[1]
     velocity = plane_data[9]
     true_track = plane_data[10]
     country_title = country
     
     cur = conn.cursor()
-    cur.execute("""INSERT INTO planes (calsing, velocity, true_track, country_title) VALUES (%s, %s, %s, %s)""", (calsing, velocity, true_track, country_title))
+    cur.execute("""INSERT INTO planes (callout, velocity, true_track, country_title) VALUES (%s, %s, %s, %s)""", (callout, velocity, true_track, country_title))
     conn.commit()
             
 #def main():
 
 if __name__ == '__main__':
     creat_tables()
-    
+
     for country in countries:
         bbox = get_nominatim_data(country)
         planes = get_opensky_data(bbox)
