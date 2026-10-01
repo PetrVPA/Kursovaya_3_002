@@ -10,6 +10,7 @@ word = os.getenv('PASSWORD')
 conn = psycopg2.connect(host = "localhost", database = "airplanes_country", port = 5432, user = "postgres",
                         password = word,)
 
+
 class CoordinatesObject(ABC):
     @abstractmethod
     def get_coordinates(self):
@@ -17,7 +18,6 @@ class CoordinatesObject(ABC):
 
 
 class APIAirplane(CoordinatesObject):
-
 
     def __init__(self):
         self.opensky_url = 'https://opensky-network.org/api/states/all?'
@@ -30,7 +30,6 @@ class APIAirplane(CoordinatesObject):
 
 
 class APIState(CoordinatesObject):
-
 
     def __init__(self):
         self.openstreetmap_url = 'https://nominatim.openstreetmap.org/search'
@@ -166,14 +165,14 @@ class DBManager:
         list_state = {}
         cur = conn.cursor()
         cur.execute(
-            """CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER 
-            JOIN planes ON title=planes.country_title""")  # создает таблицу страна - позывной
+            """CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER JOIN planes ON 
+            title=planes.country_title""")  # создает таблицу страна - позывной
         cur.execute(
             """SELECT DISTINCT title FROM tmp_state_plane""")  # создает таблицу уникальных значений таблицы страны
         real_state = cur.fetchall()
         for row in real_state:
-            cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) AS col 
-            FROM tmp_state_plane; """, (row,))
+            cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) AS col FROM tmp_state_plane; """,
+                        (row,))
             state_plane = cur.fetchall()[0][0]
             #print(state_plane)
             list_state[row[0]] = state_plane

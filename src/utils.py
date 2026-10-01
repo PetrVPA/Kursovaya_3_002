@@ -10,7 +10,6 @@ word = os.getenv('PASSWORD')
 conn = psycopg2.connect(host = "localhost", database = "airplanes_country", port = 5432, user = "postgres",
                         password = word,)
 
-
 def filter_state(air_boards: list[object], name_state: str) -> list:
     '''
     Функция фильтрации самолетов по стране регистрации
@@ -107,9 +106,9 @@ class DBManager:
         '''
         list_state = {}
         cur = conn.cursor()
-        cur.execute("""CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER 
-        JOIN planes ON title=planes.country_title""")  # создает таблицу страна - позывной
-        cur.execute("""SELECT DISTINCT title FROM tmp_state_plane""") #создает таб-цу уникальных значений таблицы страны
+        cur.execute("""CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER JOIN planes
+        ON title=planes.country_title""")  # создает таблицу страна - позывной
+        cur.execute("""SELECT DISTINCT title FROM tmp_state_plane""") # создает т-у уникальных значений т-цы страны
         real_state = cur.fetchall()
         for row in real_state:
             cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) 
