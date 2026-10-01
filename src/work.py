@@ -7,14 +7,8 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 word = os.getenv('PASSWORD')
 
-conn = psycopg2.connect(
-    host = "localhost",
-    database = "airplanes_country",
-    port = 5432,
-    user = "postgres",
-    #password = 12345,
-    password = word,
-)
+conn = psycopg2.connect(host = "localhost", database = "airplanes_country", port = 5432, user = "postgres",
+                        password = word,)
 
 class CoordinatesObject(ABC):
     @abstractmethod
@@ -23,6 +17,7 @@ class CoordinatesObject(ABC):
 
 
 class APIAirplane(CoordinatesObject):
+
 
     def __init__(self):
         self.opensky_url = 'https://opensky-network.org/api/states/all?'
@@ -35,6 +30,7 @@ class APIAirplane(CoordinatesObject):
 
 
 class APIState(CoordinatesObject):
+
 
     def __init__(self):
         self.openstreetmap_url = 'https://nominatim.openstreetmap.org/search'
@@ -158,10 +154,10 @@ class Airplane():
         }
 
 
+class DBManager:
 
-class DBManager():
-
-    def get_all_aeroplanes() -> dict:
+    @staticmethod
+    def get_countries_and_aeroplanes_count() -> dict:
         '''
         Метод обращается к базе данных получает список присутствующих в БД стран и предоставляет количество воздушных
         судов (идентификатор позывной воздушного судна) в их воздушном пространстве
@@ -170,12 +166,14 @@ class DBManager():
         list_state = {}
         cur = conn.cursor()
         cur.execute(
-            """CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER JOIN planes ON title=planes.country_title""")  # создает таблицу страна - позывной
+            """CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER 
+            JOIN planes ON title=planes.country_title""")  # создает таблицу страна - позывной
         cur.execute(
             """SELECT DISTINCT title FROM tmp_state_plane""")  # создает таблицу уникальных значений таблицы страны
         real_state = cur.fetchall()
         for row in real_state:
-            cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) AS col FROM tmp_state_plane; """, (row,))
+            cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) AS col 
+            FROM tmp_state_plane; """, (row,))
             state_plane = cur.fetchall()[0][0]
             #print(state_plane)
             list_state[row[0]] = state_plane
@@ -184,6 +182,7 @@ class DBManager():
         conn.commit()
         return list_state
 
+    @staticmethod
     def get_all_aeroplanes() -> list:
         list_airplane = []
         cur = conn.cursor()
@@ -194,6 +193,7 @@ class DBManager():
         conn.commit()
         return list_airplane
 
+    @staticmethod
     def get_avg_speed():
         cur = conn.cursor()
         cur.execute("""SELECT AVG(velocity) FROM public.planes;""")
@@ -203,6 +203,7 @@ class DBManager():
         conn.commit()
         return avg_velocity
 
+    @staticmethod
     def get_aeroplanes_with_higher_speed() -> list:
         list_airplane = []
         cur = conn.cursor()
@@ -217,6 +218,7 @@ class DBManager():
         conn.commit()
         return list_airplane
 
+    @staticmethod
     def get_aeroplanes_with_keyword(key: str) -> list:
         list_callout = []
         cur = conn.cursor()

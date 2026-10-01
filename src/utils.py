@@ -7,14 +7,8 @@ from src.work import APIAirplane
 load_dotenv('.env')
 word = os.getenv('PASSWORD')
 
-conn = psycopg2.connect(
-    host = "localhost",
-    database = "airplanes_country",
-    port = 5432,
-    user = "postgres",
-    password = word,
-    #password = 12345,
-)
+conn = psycopg2.connect(host = "localhost", database = "airplanes_country", port = 5432, user = "postgres",
+                        password = word,)
 
 
 def filter_state(air_boards: list[object], name_state: str) -> list:
@@ -42,11 +36,11 @@ def creat_tables():
     cur.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'countries')""")
     kontr_st = cur.fetchone()[0]
     # print(F"{kontr_st} таблица создана")
-    if kontr_st == False:
+    if not kontr_st:
         cur.execute("""CREATE TABLE countries (title VARCHAR(50) PRIMARY KEY)""")
     cur.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_name = 'planes')""")
     kontr_air = cur.fetchone()[0]
-    if kontr_air == False:
+    if not kontr_air:
         cur.execute("""CREATE TABLE planes (
                 id SERIAL PRIMARY KEY,
                 callout VARCHAR(50) NOT NULL,
@@ -72,11 +66,11 @@ def save_country_data_to_db(country: str):
 
 def save_planes_data_to_db(country: str, plane_data: list):
     callout = plane_data[1]
-    if callout != None:
+    if callout is not None:
         velocity = plane_data[9]
-        if velocity != None:
+        if velocity is not None:
             true_track = plane_data[10]
-            if true_track != None:
+            if true_track is not None:
                 country_title = country
                 cur = conn.cursor()
                 cur.execute(
@@ -96,15 +90,16 @@ def greet_function(countries: list):
         #print(bbox)
         plane_box = airplane.get_coordinates(bbox)
         planes = plane_box.get('states')
-        print(planes)
+        #print(planes)
         save_country_data_to_db(country)
         for plane in planes:
             save_planes_data_to_db(country, plane)
 
 
-class DBManager():
+class DBManager:
 
-    def get_all_aeroplanes() -> dict:
+    @staticmethod
+    def get_countries_and_aeroplanes_count() -> dict:
         '''
         Метод обращается к базе данных получает список присутствующих в БД стран и предоставляет количество воздушных
         судов (идентификатор позывной воздушного судна) в их воздушном пространстве
@@ -112,13 +107,13 @@ class DBManager():
         '''
         list_state = {}
         cur = conn.cursor()
-        cur.execute(
-            """CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER JOIN planes ON title=planes.country_title""")  # создает таблицу страна - позывной
-        cur.execute(
-            """SELECT DISTINCT title FROM tmp_state_plane""")  # создает таблицу уникальных значений таблицы страны
+        cur.execute("""CREATE TEMPORARY TABLE tmp_state_plane AS SELECT title, callout FROM countries INNER 
+        JOIN planes ON title=planes.country_title""")  # создает таблицу страна - позывной
+        cur.execute("""SELECT DISTINCT title FROM tmp_state_plane""") #создает таб-цу уникальных значений таблицы страны
         real_state = cur.fetchall()
         for row in real_state:
-            cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) AS col FROM tmp_state_plane; """, (row,))
+            cur.execute("""SELECT SUM(CASE WHEN title = %s THEN 1 ELSE 0 END) 
+            AS col FROM tmp_state_plane; """, (row,))
             state_plane = cur.fetchall()[0][0]
             #print(state_plane)
             list_state[row[0]] = state_plane
@@ -127,6 +122,7 @@ class DBManager():
         conn.commit()
         return list_state
 
+    @staticmethod
     def get_all_aeroplanes() -> list:
         list_airplane = []
         cur = conn.cursor()
@@ -137,6 +133,7 @@ class DBManager():
         conn.commit()
         return list_airplane
 
+    @staticmethod
     def get_avg_speed():
         cur = conn.cursor()
         cur.execute("""SELECT AVG(velocity) FROM public.planes;""")
@@ -146,6 +143,7 @@ class DBManager():
         conn.commit()
         return avg_velocity
 
+    @staticmethod
     def get_aeroplanes_with_higher_speed() -> list:
         list_airplane = []
         cur = conn.cursor()
@@ -160,8 +158,10 @@ class DBManager():
         conn.commit()
         return list_airplane
 
+    @staticmethod
     def get_aeroplanes_with_keyword(key: str) -> list:
         list_callout = []
+        rem = []
         cur = conn.cursor()
         set = '%' + key + '%'
         cur.execute("""SELECT callout FROM public.planes WHERE callout LIKE %s;""", (set,))
@@ -169,7 +169,8 @@ class DBManager():
         for callout in tmp_list:
             list_callout.append(callout[0])
         conn.commit()
-        if len(list_callout) > 0:
-            return list_callout
+        if len(list_callout) == 0:
+            rem[0] = "Данное сочетание отсутствует"
+            return rem
         else:
-            return print("Данное сочетание отсутствует")
+            return list_callout

@@ -7,14 +7,8 @@ from dotenv import load_dotenv
 load_dotenv('../.env')
 word = os.getenv('PASWORD')
 
-conn = psycopg2.connect(
-    host = "localhost",
-    database = "airplanes_country",
-    port = 5432,
-    user = "postgres",
-    #pasword = word
-    password = "12345"
-)
+conn = psycopg2.connect(host = "localhost", database = "airplanes_country", port = 5432, user = "postgres",
+                        password = "12345")
 
 countries = [
     "Germany",
